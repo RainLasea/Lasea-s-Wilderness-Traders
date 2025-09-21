@@ -1,0 +1,62 @@
+{
+  "entity.wildernesstraders.traders": "Wilderness Trader",
+
+  "screen.wildernesstraders.npc_title": "Local Trader - %s",
+
+  "screen.wildernesstraders.shop": "Shop",
+  "screen.wildernesstraders.shop_title": "%s's Shop",
+
+  "gui.wildernesstraders.shop.for_sale": "Items for Sale",
+  "gui.wildernesstraders.shop.buying": "Items We Buy",
+  "gui.wildernesstraders.shop.select_to_buy": "Select an item to buy",
+  "gui.wildernesstraders.shop.select_to_sell": "Select an item to sell",
+  "gui.wildernesstraders.shop.player_inventory": "Player Inventory",
+  "gui.wildernesstraders.shop.price.buy": "Buy Price: %d Emeralds",
+  "gui.wildernesstraders.shop.price.sell": "Sell Price: %d Emeralds",
+  "gui.wildernesstraders.shop.stock": "Stock: %d",
+  "gui.wildernesstraders.shop.out_of_stock": "Out of Stock",
+  "gui.wildernesstraders.shop.click_to_add_purchase": "Click to add to purchase list",
+  "gui.wildernesstraders.shop.click_to_add_sale": "Click to auto-grab and add to sale list",
+  "gui.wildernesstraders.shop.click_to_remove_purchase": "Click to remove purchase item",
+  "gui.wildernesstraders.shop.click_to_remove_sale": "Click to remove sale item",
+  "gui.wildernesstraders.shop.player_currency": "You have %d Emeralds",
+  "gui.wildernesstraders.shop.npc_money": "%s has %d Emeralds",
+  "gui.wildernesstraders.shop.goodbye": "Goodbye",
+  "gui.wildernesstraders.shop.trade": "Buy/Sell",
+
+  "screen.wildernesstraders.shop.for_sale": "Items for Sale",
+  "screen.wildernesstraders.shop.buying": "Items We Buy",
+  "screen.wildernesstraders.shop.select_to_buy": "Select an item to buy",
+  "screen.wildernesstraders.shop.select_to_sell": "Select an item to sell",
+  "screen.wildernesstraders.shop.player_inventory": "Player Inventory",
+  "screen.wildernesstraders.shop.price.buy": "Buy Price: %d Emeralds",
+  "screen.wildernesstraders.shop.price.sell": "Sell Price: %d Emeralds",
+  "screen.wildernesstraders.shop.click_to_add_purchase": "Click to add to purchase list",
+  "screen.wildernesstraders.shop.click_to_add_sale": "Click to auto-grab and add to sale list",
+  "screen.wildernesstraders.shop.player_emeralds": "You have %d Emeralds",
+  "screen.wildernesstraders.shop.npc_emeralds": "%s has %d Emeralds",
+  "screen.wildernesstraders.shop.goodbye": "Goodbye",
+  "screen.wildernesstraders.shop.trade": "Buy/Sell",
+
+  "shop.purchase.success": "Purchased %s for %d Emeralds",
+  "shop.purchase.inventory_full": "Inventory is full, cannot purchase",
+  "shop.purchase.insufficient_funds": "Insufficient Emeralds",
+  "shop.sale.success": "Sold %s for %d Emeralds",
+
+  "trader.basic.greeting": "Hello, traveler! I am a wilderness trader.",
+  "trader.basic.about": "I specialize in buying and selling various useful items.",
+  "trader.basic.option.trade": "I want to trade",
+  "trader.basic.option.about": "Tell me more",
+  "trader.basic.option.goodbye": "Goodbye",
+  "trader.basic.option.trade_now": "Trade now",
+  "trader.basic.option.back": "Back",
+
+  "trader.default.greeting": "Welcome, traveler!",
+  "trader.default.option.trade": "Trade",
+  "trader.default.option.goodbye": "Farewell",
+
+  "wildernesstraders.message.wagon_break_protected": "This wagon is protected and cannot be destroyed!",
+  "wildernesstraders.message.wagon_place_blocked": "Cannot place blocks in the wagon area!",
+  "wildernesstraders.message.wagon_interact_blocked": "This block cannot be interacted with!",
+  "wildernesstraders.message.wagon_attack_protected": "This wagon is protected!"
+}

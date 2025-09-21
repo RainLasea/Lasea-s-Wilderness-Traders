@@ -5,6 +5,7 @@ import com.abysslasea.wildernesstraders.entity.TraderEntity;
 import com.abysslasea.wildernesstraders.network.DialoguePacket;
 import com.abysslasea.wildernesstraders.network.ShopPacket;
 import com.google.gson.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,40 +49,59 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
                 Map<Integer, DialogueNode> nodes = new HashMap<>();
 
                 JsonObject root = json.getAsJsonObject();
+                if (!root.has("nodes")) {
+                    return;
+                }
+
                 JsonObject nodesObj = root.getAsJsonObject("nodes");
                 for (Map.Entry<String, JsonElement> entry : nodesObj.entrySet()) {
-                    int nodeId = Integer.parseInt(entry.getKey());
-                    JsonObject nodeObj = entry.getValue().getAsJsonObject();
+                    try {
+                        int nodeId = Integer.parseInt(entry.getKey());
+                        JsonObject nodeObj = entry.getValue().getAsJsonObject();
 
-                    String textKey = nodeObj.get("textKey").getAsString();
-                    Map<Integer, String> optionKeys = new HashMap<>();
-                    Map<Integer, Integer> options = new HashMap<>();
-
-                    if (nodeObj.has("options")) {
-                        JsonObject opts = nodeObj.getAsJsonObject("options");
-                        for (Map.Entry<String, JsonElement> optEntry : opts.entrySet()) {
-                            int idx = Integer.parseInt(optEntry.getKey());
-                            JsonObject optObj = optEntry.getValue().getAsJsonObject();
-                            String optTextKey = optObj.get("textKey").getAsString();
-
-                            JsonElement nextElement = optObj.get("next");
-                            int next;
-                            if (nextElement.isJsonPrimitive() && nextElement.getAsJsonPrimitive().isString()) {
-                                String nextStr = nextElement.getAsString();
-                                if ("shop".equals(nextStr) || "s".equals(nextStr)) {
-                                    next = -999;
-                                } else {
-                                    next = -1;
-                                }
-                            } else {
-                                next = nextElement.getAsInt();
-                            }
-
-                            optionKeys.put(idx, optTextKey);
-                            options.put(idx, next);
+                        if (!nodeObj.has("textKey")) {
+                            continue;
                         }
+
+                        String textKey = nodeObj.get("textKey").getAsString();
+                        Map<Integer, String> optionKeys = new HashMap<>();
+                        Map<Integer, Integer> options = new HashMap<>();
+
+                        if (nodeObj.has("options")) {
+                            JsonObject opts = nodeObj.getAsJsonObject("options");
+                            for (Map.Entry<String, JsonElement> optEntry : opts.entrySet()) {
+                                try {
+                                    int idx = Integer.parseInt(optEntry.getKey());
+                                    JsonObject optObj = optEntry.getValue().getAsJsonObject();
+
+                                    if (!optObj.has("textKey") || !optObj.has("next")) {
+                                        continue;
+                                    }
+
+                                    String optTextKey = optObj.get("textKey").getAsString();
+
+                                    JsonElement nextElement = optObj.get("next");
+                                    int next;
+                                    if (nextElement.isJsonPrimitive() && nextElement.getAsJsonPrimitive().isString()) {
+                                        String nextStr = nextElement.getAsString();
+                                        if ("shop".equals(nextStr) || "s".equals(nextStr)) {
+                                            next = -999;
+                                        } else {
+                                            next = -1;
+                                        }
+                                    } else {
+                                        next = nextElement.getAsInt();
+                                    }
+
+                                    optionKeys.put(idx, optTextKey);
+                                    options.put(idx, next);
+                                } catch (Exception e) {
+                                }
+                            }
+                        }
+                        nodes.put(nodeId, new DialogueNode(textKey, optionKeys, options));
+                    } catch (Exception e) {
                     }
-                    nodes.put(nodeId, new DialogueNode(textKey, optionKeys, options));
                 }
                 target.put(traderId, nodes);
             } catch (Exception e) {
@@ -98,41 +118,62 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
 
                 Map<Integer, DialogueNode> nodes = new HashMap<>();
                 JsonObject root = JsonParser.parseString(jsonContent).getAsJsonObject();
+
+                if (!root.has("nodes")) {
+                    loadDefaultDialogue();
+                    return;
+                }
+
                 JsonObject nodesObj = root.getAsJsonObject("nodes");
 
                 for (Map.Entry<String, JsonElement> entry : nodesObj.entrySet()) {
-                    int nodeId = Integer.parseInt(entry.getKey());
-                    JsonObject nodeObj = entry.getValue().getAsJsonObject();
+                    try {
+                        int nodeId = Integer.parseInt(entry.getKey());
+                        JsonObject nodeObj = entry.getValue().getAsJsonObject();
 
-                    String textKey = nodeObj.get("textKey").getAsString();
-                    Map<Integer, String> optionKeys = new HashMap<>();
-                    Map<Integer, Integer> options = new HashMap<>();
-
-                    if (nodeObj.has("options")) {
-                        JsonObject opts = nodeObj.getAsJsonObject("options");
-                        for (Map.Entry<String, JsonElement> optEntry : opts.entrySet()) {
-                            int idx = Integer.parseInt(optEntry.getKey());
-                            JsonObject optObj = optEntry.getValue().getAsJsonObject();
-                            String optTextKey = optObj.get("textKey").getAsString();
-
-                            JsonElement nextElement = optObj.get("next");
-                            int next;
-                            if (nextElement.isJsonPrimitive() && nextElement.getAsJsonPrimitive().isString()) {
-                                String nextStr = nextElement.getAsString();
-                                if ("shop".equals(nextStr) || "s".equals(nextStr)) {
-                                    next = -999;
-                                } else {
-                                    next = -1;
-                                }
-                            } else {
-                                next = nextElement.getAsInt();
-                            }
-
-                            optionKeys.put(idx, optTextKey);
-                            options.put(idx, next);
+                        if (!nodeObj.has("textKey")) {
+                            continue;
                         }
+
+                        String textKey = nodeObj.get("textKey").getAsString();
+                        Map<Integer, String> optionKeys = new HashMap<>();
+                        Map<Integer, Integer> options = new HashMap<>();
+
+                        if (nodeObj.has("options")) {
+                            JsonObject opts = nodeObj.getAsJsonObject("options");
+                            for (Map.Entry<String, JsonElement> optEntry : opts.entrySet()) {
+                                try {
+                                    int idx = Integer.parseInt(optEntry.getKey());
+                                    JsonObject optObj = optEntry.getValue().getAsJsonObject();
+
+                                    if (!optObj.has("textKey") || !optObj.has("next")) {
+                                        continue;
+                                    }
+
+                                    String optTextKey = optObj.get("textKey").getAsString();
+
+                                    JsonElement nextElement = optObj.get("next");
+                                    int next;
+                                    if (nextElement.isJsonPrimitive() && nextElement.getAsJsonPrimitive().isString()) {
+                                        String nextStr = nextElement.getAsString();
+                                        if ("shop".equals(nextStr) || "s".equals(nextStr)) {
+                                            next = -999;
+                                        } else {
+                                            next = -1;
+                                        }
+                                    } else {
+                                        next = nextElement.getAsInt();
+                                    }
+
+                                    optionKeys.put(idx, optTextKey);
+                                    options.put(idx, next);
+                                } catch (Exception e) {
+                                }
+                            }
+                        }
+                        nodes.put(nodeId, new DialogueNode(textKey, optionKeys, options));
+                    } catch (Exception e) {
                     }
-                    nodes.put(nodeId, new DialogueNode(textKey, optionKeys, options));
                 }
                 serverDialogues.put(traderId, nodes);
             } catch (Exception e) {
@@ -144,32 +185,41 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
     }
 
     private void loadDefaultDialogue() {
-        Map<Integer, DialogueNode> defaultNodes = new HashMap<>();
-        Map<Integer, String> optionKeys = new HashMap<>();
-        Map<Integer, Integer> options = new HashMap<>();
+        try {
+            Map<Integer, DialogueNode> defaultNodes = new HashMap<>();
+            Map<Integer, String> optionKeys = new HashMap<>();
+            Map<Integer, Integer> options = new HashMap<>();
 
-        optionKeys.put(0, "trader.default.option.trade");
-        optionKeys.put(1, "trader.default.option.goodbye");
-        options.put(0, -999);
-        options.put(1, -1);
+            optionKeys.put(0, "trader.default.option.trade");
+            optionKeys.put(1, "trader.default.option.goodbye");
+            options.put(0, -999);
+            options.put(1, -1);
 
-        defaultNodes.put(0, new DialogueNode("trader.default.greeting", optionKeys, options));
-        serverDialogues.put("default", defaultNodes);
+            defaultNodes.put(0, new DialogueNode("trader.default.greeting", optionKeys, options));
+            serverDialogues.put("default", defaultNodes);
+        } catch (Exception e) {
+        }
     }
 
     private String getCleanTraderName(Entity npcEntity) {
-        if (npcEntity instanceof TraderEntity traderEntity) {
-            return traderEntity.getCleanDisplayName();
+        try {
+            if (npcEntity instanceof TraderEntity traderEntity) {
+                return traderEntity.getCleanDisplayName();
+            }
+        } catch (Exception e) {
         }
         return "Trader";
     }
 
     @OnlyIn(Dist.CLIENT)
     public void updateClientNodes(Map<Integer, DialogueNode> nodes, String traderId) {
-        Map<Integer, DialogueNode> traderNodes = clientDialogues.computeIfAbsent(traderId, k -> new HashMap<>());
-        traderNodes.clear();
-        traderNodes.putAll(nodes);
-        currentTraderId = traderId;
+        try {
+            Map<Integer, DialogueNode> traderNodes = clientDialogues.computeIfAbsent(traderId, k -> new HashMap<>());
+            traderNodes.clear();
+            traderNodes.putAll(nodes);
+            currentTraderId = traderId;
+        } catch (Exception e) {
+        }
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -187,65 +237,89 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
 
     @OnlyIn(Dist.CLIENT)
     public void loadClientProgress(int entityId, int currentNode, String traderId) {
-        currentEntityId = entityId;
-        currentNodeId = 0;
-        shouldCloseDialogue = false;
-        currentTraderId = traderId;
+        try {
+            currentEntityId = entityId;
+            currentNodeId = 0;
+            shouldCloseDialogue = false;
+            currentTraderId = traderId;
+        } catch (Exception e) {
+        }
     }
 
     @OnlyIn(Dist.CLIENT)
     public void setCurrentEntityId(int entityId) {
-        currentEntityId = entityId;
+        this.currentEntityId = entityId;
     }
 
     @OnlyIn(Dist.CLIENT)
     public void setCachedNpcInfo(String npcName, String npcId) {
-        cachedNpcName = npcName;
-        cachedNpcId = npcId;
+        this.cachedNpcName = npcName;
+        this.cachedNpcId = npcId;
     }
 
     @OnlyIn(Dist.CLIENT)
     public DialogueNode getCurrentNode() {
-        Map<Integer, DialogueNode> traderNodes = clientDialogues.get(currentTraderId);
-        if (traderNodes == null) {
+        try {
+            Map<Integer, DialogueNode> traderNodes = clientDialogues.get(currentTraderId);
+            if (traderNodes == null) {
+                return null;
+            }
+
+            DialogueNode node = traderNodes.get(currentNodeId);
+            if (node == null && traderNodes.containsKey(0)) {
+                currentNodeId = 0;
+                node = traderNodes.get(0);
+            }
+
+            return node;
+        } catch (Exception e) {
             return null;
         }
-
-        DialogueNode node = traderNodes.get(currentNodeId);
-        if (node == null && traderNodes.containsKey(0)) {
-            currentNodeId = 0;
-            node = traderNodes.get(0);
-        }
-
-        return node;
     }
 
     @OnlyIn(Dist.CLIENT)
     public void setNode(int id) {
-        if (id == -1) {
-            shouldCloseDialogue = true;
-        } else if (id == -999) {
-            shouldCloseDialogue = true;
-            if (currentEntityId == -1) {
-                return;
-            }
-            NetworkHandler.CHANNEL.sendToServer(ShopPacket.openShop(currentEntityId, cachedNpcName, cachedNpcId));
-        } else {
-            Map<Integer, DialogueNode> traderNodes = clientDialogues.get(currentTraderId);
-            if (traderNodes != null && traderNodes.containsKey(id)) {
-                currentNodeId = id;
-                saveCurrentNodeProgress();
-                shouldCloseDialogue = false;
-            } else {
+        try {
+            if (id == -1) {
                 shouldCloseDialogue = true;
+            } else if (id == -999) {
+                shouldCloseDialogue = true;
+                if (currentEntityId == -1) {
+                    return;
+                }
+                NetworkHandler.CHANNEL.sendToServer(ShopPacket.openShop(currentEntityId, cachedNpcName, cachedNpcId));
+            } else {
+                Map<Integer, DialogueNode> traderNodes = clientDialogues.get(currentTraderId);
+                if (traderNodes != null && traderNodes.containsKey(id)) {
+                    currentNodeId = id;
+                    saveCurrentNodeProgress();
+                    shouldCloseDialogue = false;
+
+                    try {
+                        if (currentEntityId != -1) {
+                            Entity entity = Minecraft.getInstance().level.getEntity(currentEntityId);
+                            if (entity instanceof TraderEntity trader) {
+                                trader.triggerTalkAnimation();
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
+                } else {
+                    shouldCloseDialogue = true;
+                }
             }
+        } catch (Exception e) {
+            shouldCloseDialogue = true;
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     private void saveCurrentNodeProgress() {
-        if (currentEntityId != -1) {
-            NetworkHandler.CHANNEL.sendToServer(DialoguePacket.updateProgress(currentEntityId, currentNodeId));
+        try {
+            if (currentEntityId != -1) {
+                NetworkHandler.CHANNEL.sendToServer(DialoguePacket.updateProgress(currentEntityId, currentNodeId));
+            }
+        } catch (Exception e) {
         }
     }
 
@@ -260,12 +334,16 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
     }
 
     public DialogueNode getNode(int id, String traderId) {
-        if (isClient()) {
-            Map<Integer, DialogueNode> traderNodes = clientDialogues.get(traderId);
-            return traderNodes != null ? traderNodes.get(id) : null;
-        } else {
-            Map<Integer, DialogueNode> traderNodes = serverDialogues.get(traderId);
-            return traderNodes != null ? traderNodes.get(id) : null;
+        try {
+            if (isClient()) {
+                Map<Integer, DialogueNode> traderNodes = clientDialogues.get(traderId);
+                return traderNodes != null ? traderNodes.get(id) : null;
+            } else {
+                Map<Integer, DialogueNode> traderNodes = serverDialogues.get(traderId);
+                return traderNodes != null ? traderNodes.get(id) : null;
+            }
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -278,42 +356,60 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
     }
 
     public void syncToPlayer(ServerPlayer player, Entity npcEntity, String traderId) {
-        if (player.level().isClientSide() || npcEntity == null) {
-            return;
+        try {
+            if (player.level().isClientSide() || npcEntity == null) {
+                return;
+            }
+
+            ensureServerDialogueLoaded(player.server, traderId);
+            Map<Integer, DialogueNode> traderNodes = serverDialogues.get(traderId);
+
+            if (traderNodes == null) {
+                ensureServerDialogueLoaded(player.server, "default");
+                traderNodes = serverDialogues.get("default");
+            }
+
+            if (traderNodes == null) {
+                return;
+            }
+
+            String cleanName = getCleanTraderName(npcEntity);
+            DialogueProgress progress = new DialogueProgress();
+            progress.currentNodeId = 0;
+
+            DialoguePacket packet = DialoguePacket.syncNodes(traderNodes, traderId, cleanName, npcEntity.getId(), progress.currentNodeId);
+            NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+        } catch (Exception e) {
         }
-
-        ensureServerDialogueLoaded(player.server, traderId);
-        Map<Integer, DialogueNode> traderNodes = serverDialogues.get(traderId);
-
-        if (traderNodes == null) {
-            ensureServerDialogueLoaded(player.server, "default");
-            traderNodes = serverDialogues.get("default");
-        }
-
-        if (traderNodes == null) {
-            return;
-        }
-
-        String cleanName = getCleanTraderName(npcEntity);
-        DialogueProgress progress = new DialogueProgress();
-        progress.currentNodeId = 0;
-
-        DialoguePacket packet = DialoguePacket.syncNodes(traderNodes, traderId, cleanName, npcEntity.getId(), progress.currentNodeId);
-        NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 
     public void updateEntityProgress(Player player, Entity npcEntity, int currentNode) {
-        CompoundTag entityData = npcEntity.getPersistentData();
-        String playerKey = "dialogue_" + player.getUUID().toString();
+        try {
+            CompoundTag entityData = npcEntity.getPersistentData();
+            String playerKey = "dialogue_" + player.getUUID().toString();
 
-        Map<Integer, DialogueNode> traderNodes = serverDialogues.get(currentTraderId);
-        if (traderNodes == null) traderNodes = serverDialogues.get("default");
+            Map<Integer, DialogueNode> traderNodes = serverDialogues.get(currentTraderId);
+            if (traderNodes == null) traderNodes = serverDialogues.get("default");
 
-        int nodeToSave = (currentNode >= 0 && traderNodes != null && traderNodes.containsKey(currentNode)) ? currentNode : 0;
+            int nodeToSave = (currentNode >= 0 && traderNodes != null && traderNodes.containsKey(currentNode)) ? currentNode : 0;
 
-        CompoundTag playerData = new CompoundTag();
-        playerData.putInt("currentNode", nodeToSave);
-        entityData.put(playerKey, playerData);
+            CompoundTag playerData = new CompoundTag();
+            playerData.putInt("currentNode", nodeToSave);
+            entityData.put(playerKey, playerData);
+
+            try {
+                if (npcEntity instanceof TraderEntity trader) {
+                    trader.triggerTalkAnimation();
+
+                    NetworkHandler.CHANNEL.send(
+                            PacketDistributor.TRACKING_ENTITY.with(() -> trader),
+                            DialoguePacket.triggerAnimation(trader.getId())
+                    );
+                }
+            } catch (Exception e) {
+            }
+        } catch (Exception e) {
+        }
     }
 
     public static class DialogueProgress {

@@ -1,6 +1,5 @@
 package com.abysslasea.wildernesstraders;
 
-import com.abysslasea.wildernesstraders.client.TraderRenderer;
 import com.abysslasea.wildernesstraders.dialogue.DialogueManager;
 import com.abysslasea.wildernesstraders.entity.ModEntities;
 import com.abysslasea.wildernesstraders.entity.TraderEntity;
@@ -8,13 +7,20 @@ import com.abysslasea.wildernesstraders.shop.ShopContainer;
 import com.abysslasea.wildernesstraders.shop.ShopContainerScreen;
 import com.abysslasea.wildernesstraders.trader.TradeEntry;
 import com.abysslasea.wildernesstraders.trader.TraderResourceManager;
+import com.abysslasea.wildernesstraders.worldgen.ModStructureData;
+import com.abysslasea.wildernesstraders.worldgen.ModStructures;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -33,6 +39,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Mod(WildernessTraders.MODID)
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -88,39 +96,26 @@ public class WildernessTraders {
     public WildernessTraders(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
 
+        ModStructures.register(modEventBus);
         MENU_TYPES.register(modEventBus);
         ModEntities.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::setupEntityAttributes);
+        modEventBus.addListener(this::gatherData);
 
         NetworkHandler.init();
+
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.addListener(this::clientSetup);
-            modEventBus.addListener(this::registerEntityRenderers);
         }
 
         MinecraftForge.EVENT_BUS.register(this);
-
-        LOGGER.info("Wilderness Traders mod loading...");
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        // 强制初始化配置
         event.enqueueWork(() -> {
-            try {
-                LOGGER.info("Initializing trader names config...");
-                // 强制触发 TraderNamesConfig 的初始化
-                TraderNamesConfig config = TraderNamesConfig.INSTANCE;
-                LOGGER.info("Trader names config initialized with {} names", config.getNameCount());
-
-                // 打印配置文件路径用于调试
-                LOGGER.info("Config should be located at: {}",
-                        net.minecraftforge.fml.loading.FMLPaths.CONFIGDIR.get().resolve("trader_names.json"));
-
-            } catch (Exception e) {
-                LOGGER.error("Failed to initialize trader names config", e);
-            }
+            TraderNamesConfig config = TraderNamesConfig.INSTANCE;
         });
     }
 
@@ -129,17 +124,16 @@ public class WildernessTraders {
     }
 
     private void clientSetup(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            try {
-                MenuScreens.register(SHOP_CONTAINER_TYPE.get(), ShopContainerScreen::new);
-            } catch (Exception e) {
-                LOGGER.error("Failed to register menu screen", e);
-            }
-        });
+        MenuScreens.register(SHOP_CONTAINER_TYPE.get(), ShopContainerScreen::new);
     }
 
-    private void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.TRADER.get(), TraderRenderer::new);
+    private void gatherData(GatherDataEvent event) {
+        DataGenerator generator = event.getGenerator();
+        PackOutput packOutput = generator.getPackOutput();
+        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+
+        generator.addProvider(event.includeServer(), new DatapackBuiltinEntriesProvider(
+                packOutput, lookupProvider, Set.of(MODID)));
     }
 
     @SubscribeEvent
@@ -151,5 +145,15 @@ public class WildernessTraders {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         TraderCommands.register(event.getDispatcher());
+    }
+
+    public static class DatapackBuiltinEntriesProvider extends net.minecraftforge.common.data.DatapackBuiltinEntriesProvider {
+        public DatapackBuiltinEntriesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> provider, Set<String> modIds) {
+            super(output, provider,
+                    new RegistrySetBuilder()
+                            .add(Registries.STRUCTURE, ModStructureData::bootstrap)
+                            .add(Registries.STRUCTURE_SET, ModStructureData::bootstrapStructureSet),
+                    modIds);
+        }
     }
 }

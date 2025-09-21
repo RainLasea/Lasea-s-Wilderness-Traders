@@ -39,7 +39,7 @@ public class ShopContainerScreen extends AbstractContainerScreen<ShopContainer> 
         this.titleLabelY = 6;
         this.inventoryLabelY = 178;
 
-        int leftX = this.leftPos - 60;
+        int leftX = this.leftPos + 30;
         int bottomY = this.topPos + 165;
         this.goodbyeButton = Button.builder(
                 Component.translatable("gui.wildernesstraders.shop.goodbye"),
@@ -47,7 +47,7 @@ public class ShopContainerScreen extends AbstractContainerScreen<ShopContainer> 
         ).bounds(leftX, bottomY, 60, 20).build();
         this.addRenderableWidget(goodbyeButton);
 
-        int rightX = this.leftPos + this.imageWidth - 0;
+        int rightX = this.leftPos + this.imageWidth - 90;
         this.tradeButton = Button.builder(
                 Component.translatable("gui.wildernesstraders.shop.trade"),
                 button -> {
@@ -82,42 +82,42 @@ public class ShopContainerScreen extends AbstractContainerScreen<ShopContainer> 
         guiGraphics.blit(SHOP_BACKGROUND_TEXTURE, x, y, 0, 0, this.imageWidth, 180, 256, 256);
 
         Component saleTitle = Component.translatable("gui.wildernesstraders.shop.for_sale");
-        guiGraphics.drawString(this.font, saleTitle, x + 20, y + 20, 0x404040, false);
+        guiGraphics.drawString(this.font, saleTitle, x + 20, y + 20, 0xFFFFFFFF, false);
 
         Component buyTitle = Component.translatable("gui.wildernesstraders.shop.buying");
-        guiGraphics.drawString(this.font, buyTitle, x + 120, y + 20, 0x404040, false);
+        guiGraphics.drawString(this.font, buyTitle, x + 120, y + 20, 0xFFFFFFFF, false);
 
         Component purchaseSelectionTitle = Component.translatable("gui.wildernesstraders.shop.select_to_buy");
-        guiGraphics.drawString(this.font, purchaseSelectionTitle, x + 20, y + 125, 0x404040, false);
+        guiGraphics.drawString(this.font, purchaseSelectionTitle, x + 20, y + 125, 0xFFFFFFFF, false);
 
         Component sellSelectionTitle = Component.translatable("gui.wildernesstraders.shop.select_to_sell");
-        guiGraphics.drawString(this.font, sellSelectionTitle, x + 120, y + 125, 0x404040, false);
+        guiGraphics.drawString(this.font, sellSelectionTitle, x + 120, y + 125, 0xFFFFFFFF, false);
 
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
-                int slotX = x + 20 + col * 20;
-                int slotY = y + 30 + row * 20;
+                int slotX = x + 19 + col * 20;
+                int slotY = y + 29 + row * 20;
                 drawSlotBorder(guiGraphics, slotX, slotY);
             }
         }
 
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
-                int slotX = x + 120 + col * 20;
-                int slotY = y + 30 + row * 20;
+                int slotX = x + 119 + col * 20;
+                int slotY = y + 29 + row * 20;
                 drawSlotBorder(guiGraphics, slotX, slotY);
             }
         }
 
         for (int col = 0; col < 4; col++) {
-            int slotX = x + 20 + col * 20;
-            int slotY = y + 140;
+            int slotX = x + 19 + col * 20;
+            int slotY = y + 139;
             drawSlotBorder(guiGraphics, slotX, slotY);
         }
 
         for (int col = 0; col < 4; col++) {
-            int slotX = x + 120 + col * 20;
-            int slotY = y + 140;
+            int slotX = x + 119 + col * 20;
+            int slotY = y + 139;
             drawSlotBorder(guiGraphics, slotX, slotY);
         }
 
@@ -147,12 +147,12 @@ public class ShopContainerScreen extends AbstractContainerScreen<ShopContainer> 
     private void renderCurrencyInfo(GuiGraphics guiGraphics, int x, int y) {
         Component playerCurrency = Component.translatable("gui.wildernesstraders.shop.player_currency",
                 menu.getPlayerCurrency());
-        guiGraphics.drawString(this.font, playerCurrency, x + 5, y + 167, 0x00AA00, false);
+        guiGraphics.drawString(this.font, playerCurrency, x + 5, y + 110, 0x00AA00, false);
 
         Component npcMoney = Component.translatable("gui.wildernesstraders.shop.npc_money",
                 menu.getNpcName(), menu.getNpcMoney());
         int npcMoneyWidth = this.font.width(npcMoney);
-        guiGraphics.drawString(this.font, npcMoney, x + this.imageWidth - npcMoneyWidth - 5, y + 167, 0x00AA00, false);
+        guiGraphics.drawString(this.font, npcMoney, x + this.imageWidth - npcMoneyWidth - 5, y + 110, 0x00AA00, false);
     }
 
     private void renderShopTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {

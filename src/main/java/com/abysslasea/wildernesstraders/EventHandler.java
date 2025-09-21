@@ -28,11 +28,21 @@ public class EventHandler {
             String npcName = trader.getCleanDisplayName();
             String traderId = trader.getTraderName();
 
-            if (player instanceof ServerPlayer serverPlayer) {
-                DialogueManager.INSTANCE.syncToPlayer(serverPlayer, target, traderId);
+            try {
+                trader.triggerTalkAnimation();
+            } catch (Exception e) {
+                System.err.println("动画触发失败: " + e.getMessage());
+            }
 
-                NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
-                        DialoguePacket.openGui(target.getId(), npcName, traderId));
+            if (player instanceof ServerPlayer serverPlayer) {
+                try {
+                    DialogueManager.INSTANCE.syncToPlayer(serverPlayer, target, traderId);
+
+                    NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer),
+                            DialoguePacket.openGui(target.getId(), npcName, traderId));
+                } catch (Exception e) {
+                    System.err.println("对话同步失败: " + e.getMessage());
+                }
             }
             event.setCanceled(true);
         }

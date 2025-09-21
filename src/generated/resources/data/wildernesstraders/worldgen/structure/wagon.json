@@ -1,0 +1,10 @@
+{
+  "type": "wildernesstraders:wagon_structure",
+  "biomes": "#minecraft:is_overworld",
+  "spawn_overrides": {},
+  "start_height": {
+    "absolute": 64
+  },
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin"
+}

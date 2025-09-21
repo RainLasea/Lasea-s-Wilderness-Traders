@@ -1,0 +1,62 @@
+{
+  "entity.wildernesstraders.traders": "荒野商人",
+
+  "screen.wildernesstraders.npc_title": "本地商人 - %s",
+
+  "screen.wildernesstraders.shop": "商店",
+  "screen.wildernesstraders.shop_title": "%s的商店",
+
+  "gui.wildernesstraders.shop.for_sale": "出售的物品",
+  "gui.wildernesstraders.shop.buying": "收购的物品",
+  "gui.wildernesstraders.shop.select_to_buy": "选择要购买的物品",
+  "gui.wildernesstraders.shop.select_to_sell": "选择要出售的物品",
+  "gui.wildernesstraders.shop.player_inventory": "玩家背包",
+  "gui.wildernesstraders.shop.price.buy": "购买价格: %d 绿宝石",
+  "gui.wildernesstraders.shop.price.sell": "出售价格: %d 绿宝石",
+  "gui.wildernesstraders.shop.stock": "库存: %d",
+  "gui.wildernesstraders.shop.out_of_stock": "库存不足",
+  "gui.wildernesstraders.shop.click_to_add_purchase": "点击添加到购买列表",
+  "gui.wildernesstraders.shop.click_to_add_sale": "点击自动获取并添加到出售列表",
+  "gui.wildernesstraders.shop.click_to_remove_purchase": "点击移除购买项目",
+  "gui.wildernesstraders.shop.click_to_remove_sale": "点击移除出售项目",
+  "gui.wildernesstraders.shop.player_currency": "你有 %d 个绿宝石",
+  "gui.wildernesstraders.shop.npc_money": "%s有 %d 个绿宝石",
+  "gui.wildernesstraders.shop.goodbye": "再见",
+  "gui.wildernesstraders.shop.trade": "购买/出售",
+
+  "screen.wildernesstraders.shop.for_sale": "出售的物品",
+  "screen.wildernesstraders.shop.buying": "收购的物品",
+  "screen.wildernesstraders.shop.select_to_buy": "选择要购买的物品",
+  "screen.wildernesstraders.shop.select_to_sell": "选择要出售的物品",
+  "screen.wildernesstraders.shop.player_inventory": "玩家背包",
+  "screen.wildernesstraders.shop.price.buy": "购买价格: %d 绿宝石",
+  "screen.wildernesstraders.shop.price.sell": "出售价格: %d 绿宝石",
+  "screen.wildernesstraders.shop.click_to_add_purchase": "点击添加到购买列表",
+  "screen.wildernesstraders.shop.click_to_add_sale": "点击自动获取并添加到出售列表",
+  "screen.wildernesstraders.shop.player_emeralds": "你有 %d 个绿宝石",
+  "screen.wildernesstraders.shop.npc_emeralds": "%s有 %d 个绿宝石",
+  "screen.wildernesstraders.shop.goodbye": "再见",
+  "screen.wildernesstraders.shop.trade": "购买/出售",
+
+  "shop.purchase.success": "购买了 %s，花费 %d 绿宝石",
+  "shop.purchase.inventory_full": "背包已满，无法购买",
+  "shop.purchase.insufficient_funds": "绿宝石不足",
+  "shop.sale.success": "出售了 %s，获得 %d 绿宝石",
+
+  "trader.basic.greeting": "你好，旅行者！我是荒野商人。",
+  "trader.basic.about": "我专门收购和出售各种实用的物品。",
+  "trader.basic.option.trade": "我想交易",
+  "trader.basic.option.about": "告诉我更多",
+  "trader.basic.option.goodbye": "再见",
+  "trader.basic.option.trade_now": "现在就交易",
+  "trader.basic.option.back": "返回",
+
+  "trader.default.greeting": "欢迎，旅行者！",
+  "trader.default.option.trade": "交易",
+  "trader.default.option.goodbye": "告别",
+
+  "wildernesstraders.message.wagon_break_protected": "这个马车受到保护，无法破坏！",
+  "wildernesstraders.message.wagon_place_blocked": "无法在马车区域内放置方块！",
+  "wildernesstraders.message.wagon_interact_blocked": "这个方块无法交互！",
+  "wildernesstraders.message.wagon_attack_protected": "这个马车受到保护！"
+}

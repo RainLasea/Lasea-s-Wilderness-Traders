@@ -20,10 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.animation.*;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -35,6 +32,8 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
             SynchedEntityData.defineId(TraderEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> DISPLAY_NAME =
             SynchedEntityData.defineId(TraderEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Boolean> IS_TALKING =
+            SynchedEntityData.defineId(TraderEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final String NBT_TRADER_PROFESSION = "TraderProfession";
     private static final String NBT_DISPLAY_NAME = "DisplayName";
@@ -43,6 +42,11 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
     private static final String NBT_NAME_SEED = "NameSeed";
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private long lastTalkTime = 0;
+    private static final long TALK_ANIMATION_DURATION = 2000;
+    private boolean hasIdleAnimation = true;
+    private boolean hasWalkAnimation = true;
+    private boolean hasTalkAnimation = true;
 
     public TraderEntity(EntityType<? extends TraderEntity> entityType, Level level) {
         super(entityType, level);
@@ -54,6 +58,7 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
         super.defineSynchedData();
         this.entityData.define(TRADER_PROFESSION, "");
         this.entityData.define(DISPLAY_NAME, "");
+        this.entityData.define(IS_TALKING, false);
     }
 
     @Override
@@ -74,6 +79,11 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
     @Override
     public void tick() {
         super.tick();
+
+        if (this.isTalking() &&
+                System.currentTimeMillis() - this.lastTalkTime > TALK_ANIMATION_DURATION) {
+            this.setTalking(false);
+        }
 
         if (!this.level().isClientSide()) {
             if (!isInitialized()) {
@@ -257,6 +267,30 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
         return getCurrentMoney() >= amount;
     }
 
+    public boolean isTalking() {
+        return this.entityData.get(IS_TALKING);
+    }
+
+    public void setTalking(boolean talking) {
+        this.entityData.set(IS_TALKING, talking);
+        if (talking) {
+            this.lastTalkTime = System.currentTimeMillis();
+        }
+    }
+
+    public void triggerTalkAnimation() {
+        if (this.hasTalkAnimation) {
+            this.setTalking(true);
+            this.lastTalkTime = System.currentTimeMillis();
+        }
+    }
+
+    public void setAnimationAvailability(boolean hasIdle, boolean hasWalk, boolean hasTalk) {
+        this.hasIdleAnimation = hasIdle;
+        this.hasWalkAnimation = hasWalk;
+        this.hasTalkAnimation = hasTalk;
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
@@ -264,6 +298,10 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
         compound.putString(NBT_DISPLAY_NAME, getTraderDisplayName());
         compound.putInt(NBT_MONEY_COUNT, getCurrentMoney());
         compound.putBoolean(NBT_INITIALIZED, isInitialized());
+        compound.putBoolean("IsTalking", this.isTalking());
+        compound.putBoolean("HasIdleAnimation", this.hasIdleAnimation);
+        compound.putBoolean("HasWalkAnimation", this.hasWalkAnimation);
+        compound.putBoolean("HasTalkAnimation", this.hasTalkAnimation);
 
         if (this.getPersistentData().contains(NBT_NAME_SEED)) {
             compound.putLong(NBT_NAME_SEED, this.getPersistentData().getLong(NBT_NAME_SEED));
@@ -285,6 +323,18 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
         }
         if (compound.contains(NBT_INITIALIZED)) {
             this.getPersistentData().putBoolean(NBT_INITIALIZED, compound.getBoolean(NBT_INITIALIZED));
+        }
+        if (compound.contains("IsTalking")) {
+            this.setTalking(compound.getBoolean("IsTalking"));
+        }
+        if (compound.contains("HasIdleAnimation")) {
+            this.hasIdleAnimation = compound.getBoolean("HasIdleAnimation");
+        }
+        if (compound.contains("HasWalkAnimation")) {
+            this.hasWalkAnimation = compound.getBoolean("HasWalkAnimation");
+        }
+        if (compound.contains("HasTalkAnimation")) {
+            this.hasTalkAnimation = compound.getBoolean("HasTalkAnimation");
         }
         if (compound.contains(NBT_NAME_SEED)) {
             this.getPersistentData().putLong(NBT_NAME_SEED, compound.getLong(NBT_NAME_SEED));
@@ -322,12 +372,39 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
     }
 
     private <T extends GeoAnimatable> PlayState predicate(AnimationState<T> animationState) {
-        if (animationState.isMoving()) {
-            animationState.getController().setAnimation(RawAnimation.begin().thenLoop("animation.trader.walk"));
-        } else {
-            animationState.getController().setAnimation(RawAnimation.begin().thenLoop("animation.trader.idle"));
+        try {
+            if (this.isTalking() && this.hasTalkAnimation) {
+                try {
+                    animationState.getController().setAnimation(RawAnimation.begin().then("talk", Animation.LoopType.PLAY_ONCE));
+                    return PlayState.CONTINUE;
+                } catch (Exception e) {
+                    this.hasTalkAnimation = false;
+                }
+            }
+
+            if (animationState.isMoving() && this.hasWalkAnimation) {
+                try {
+                    animationState.getController().setAnimation(RawAnimation.begin().then("walk", Animation.LoopType.LOOP));
+                    return PlayState.CONTINUE;
+                } catch (Exception e) {
+                    this.hasWalkAnimation = false;
+                }
+            }
+
+            if (this.hasIdleAnimation) {
+                try {
+                    animationState.getController().setAnimation(RawAnimation.begin().then("idle", Animation.LoopType.LOOP));
+                    return PlayState.CONTINUE;
+                } catch (Exception e) {
+                    this.hasIdleAnimation = false;
+                }
+            }
+
+            return PlayState.STOP;
+
+        } catch (Exception e) {
+            return PlayState.STOP;
         }
-        return PlayState.CONTINUE;
     }
 
     @Override

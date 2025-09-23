@@ -1,0 +1,9 @@
+{
+  "name": "basic_trader",
+  "display_name": "Basic Trader",
+  "currency": {
+    "item": "minecraft:emerald"
+  },
+  "initial_money": 150,
+  "restock_days": 3
+}

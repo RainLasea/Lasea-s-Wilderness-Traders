@@ -1,6 +1,6 @@
 package com.abysslasea.wildernesstraders.entity;
 
-import com.abysslasea.wildernesstraders.TraderNamesConfig;
+import com.abysslasea.wildernesstraders.TraderConfig;
 import com.abysslasea.wildernesstraders.trader.TraderData;
 import com.abysslasea.wildernesstraders.trader.TraderResourceManager;
 import net.minecraft.nbt.CompoundTag;
@@ -144,7 +144,7 @@ public class TraderEntity extends PathfinderMob implements GeoAnimatable {
         }
 
         long nameSeed = getNameSeed();
-        String generatedName = TraderNamesConfig.INSTANCE.generateName(nameSeed);
+        String generatedName = TraderConfig.INSTANCE.generateName(nameSeed);
 
         setTraderDisplayName(generatedName);
 

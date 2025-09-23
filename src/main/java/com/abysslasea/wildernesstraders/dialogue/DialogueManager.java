@@ -1,6 +1,7 @@
 package com.abysslasea.wildernesstraders.dialogue;
 
 import com.abysslasea.wildernesstraders.NetworkHandler;
+import com.abysslasea.wildernesstraders.TraderConfig;
 import com.abysslasea.wildernesstraders.entity.TraderEntity;
 import com.abysslasea.wildernesstraders.network.DialoguePacket;
 import com.abysslasea.wildernesstraders.network.ShopPacket;
@@ -9,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -35,17 +37,22 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> resources, ResourceManager manager, ProfilerFiller profiler) {
         if (isClient()) {
-            loadNodesFromResources(resources, clientDialogues);
+            loadNodesFromResources(resources, clientDialogues, manager);
         } else {
-            loadNodesFromResources(resources, serverDialogues);
+            loadNodesFromResources(resources, serverDialogues, manager);
         }
     }
 
-    private void loadNodesFromResources(Map<ResourceLocation, JsonElement> resources, Map<String, Map<Integer, DialogueNode>> target) {
+    private void loadNodesFromResources(Map<ResourceLocation, JsonElement> resources, Map<String, Map<Integer, DialogueNode>> target, ResourceManager manager) {
         target.clear();
         resources.forEach((id, json) -> {
             try {
                 String traderId = id.getPath();
+
+                if (TraderConfig.INSTANCE.isBuiltinResourcesDisabled() && isBuiltinResource(id, manager)) {
+                    return;
+                }
+
                 Map<Integer, DialogueNode> nodes = new HashMap<>();
 
                 JsonObject root = json.getAsJsonObject();
@@ -109,11 +116,45 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
         });
     }
 
+    private boolean isBuiltinResource(ResourceLocation location, ResourceManager resourceManager) {
+        try {
+            List<Resource> resources = resourceManager.getResourceStack(location);
+            if (resources.isEmpty()) return true;
+
+            Resource topResource = resources.get(resources.size() - 1);
+            String packId = topResource.sourcePackId();
+
+            if (packId.equals("wildernesstraders") ||
+                    packId.contains("wildernesstraders") ||
+                    packId.equals("mod") ||
+                    packId.startsWith("mod:") ||
+                    packId.equals("minecraft") ||
+                    packId.startsWith("forge:") ||
+                    packId.startsWith("fabric:") ||
+                    packId.startsWith("quilt:")) {
+                return true;
+            }
+
+            return packId.length() < 3 || packId.matches("^[a-f0-9]{8,}$") || packId.contains("builtin");
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
     public void ensureServerDialogueLoaded(net.minecraft.server.MinecraftServer server, String traderId) {
         if (!serverDialogues.containsKey(traderId)) {
             try {
                 ResourceLocation dialogueLocation = new ResourceLocation("wildernesstraders", "dialoguetree/" + traderId + ".json");
-                var resource = server.getResourceManager().getResourceOrThrow(dialogueLocation);
+                ResourceManager resourceManager = server.getResourceManager();
+
+                if (TraderConfig.INSTANCE.isBuiltinResourcesDisabled() && isBuiltinResource(dialogueLocation, resourceManager)) {
+                    if (!serverDialogues.containsKey("default")) {
+                        loadDefaultDialogue();
+                    }
+                    return;
+                }
+
+                var resource = resourceManager.getResourceOrThrow(dialogueLocation);
                 String jsonContent = new String(resource.open().readAllBytes());
 
                 Map<Integer, DialogueNode> nodes = new HashMap<>();
@@ -186,6 +227,10 @@ public class DialogueManager extends SimpleJsonResourceReloadListener {
 
     private void loadDefaultDialogue() {
         try {
+            if (TraderConfig.INSTANCE.isBuiltinResourcesDisabled()) {
+                return;
+            }
+
             Map<Integer, DialogueNode> defaultNodes = new HashMap<>();
             Map<Integer, String> optionKeys = new HashMap<>();
             Map<Integer, Integer> options = new HashMap<>();

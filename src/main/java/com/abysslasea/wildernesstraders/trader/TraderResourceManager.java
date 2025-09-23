@@ -1,7 +1,9 @@
 package com.abysslasea.wildernesstraders.trader;
 
+import com.abysslasea.wildernesstraders.TraderConfig;
 import com.google.gson.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -28,14 +30,19 @@ public class TraderResourceManager extends SimpleJsonResourceReloadListener {
         traders.clear();
         tradePools.clear();
 
-        loadTraders(resources);
+        loadTraders(resources, manager);
         loadTradePools(manager);
     }
 
-    private void loadTraders(Map<ResourceLocation, JsonElement> resources) {
+    private void loadTraders(Map<ResourceLocation, JsonElement> resources, ResourceManager manager) {
         resources.forEach((location, json) -> {
             try {
                 String traderId = location.getPath();
+
+                if (TraderConfig.INSTANCE.isBuiltinResourcesDisabled() && isBuiltinResource(location, manager)) {
+                    return;
+                }
+
                 TraderData traderData = parseTraderData(traderId, json.getAsJsonObject());
                 if (traderData != null) {
                     traders.put(traderId, traderData);
@@ -52,9 +59,15 @@ public class TraderResourceManager extends SimpleJsonResourceReloadListener {
 
             for (var entry : tradePoolResources.entrySet()) {
                 try {
+                    ResourceLocation location = entry.getKey();
+                    String traderId = location.getPath().replace("traderpool/", "").replace(".json", "");
+
+                    if (TraderConfig.INSTANCE.isBuiltinResourcesDisabled() && isBuiltinResource(location, resourceManager)) {
+                        continue;
+                    }
+
                     String content = new String(entry.getValue().open().readAllBytes());
                     JsonElement json = JsonParser.parseString(content);
-                    String traderId = entry.getKey().getPath().replace("traderpool/", "").replace(".json", "");
 
                     TradePool tradePool = parseTradePool(traderId, json.getAsJsonObject());
                     if (tradePool != null) {
@@ -64,6 +77,31 @@ public class TraderResourceManager extends SimpleJsonResourceReloadListener {
                 }
             }
         } catch (Exception e) {
+        }
+    }
+
+    private boolean isBuiltinResource(ResourceLocation location, ResourceManager resourceManager) {
+        try {
+            List<Resource> resources = resourceManager.getResourceStack(location);
+            if (resources.isEmpty()) return true;
+
+            Resource topResource = resources.get(resources.size() - 1);
+            String packId = topResource.sourcePackId();
+
+            if (packId.equals("wildernesstraders") ||
+                    packId.contains("wildernesstraders") ||
+                    packId.equals("mod") ||
+                    packId.startsWith("mod:") ||
+                    packId.equals("minecraft") ||
+                    packId.startsWith("forge:") ||
+                    packId.startsWith("fabric:") ||
+                    packId.startsWith("quilt:")) {
+                return true;
+            }
+
+            return packId.length() < 3 || packId.matches("^[a-f0-9]{8,}$") || packId.contains("builtin");
+        } catch (Exception e) {
+            return true;
         }
     }
 

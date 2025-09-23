@@ -9,16 +9,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class TraderNamesConfig {
-    private static final String CONFIG_FILENAME = "trader_names.json";
+public class TraderConfig {
+    private static final String CONFIG_FILENAME = "wilderness_traders.json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    public static final TraderNamesConfig INSTANCE = new TraderNamesConfig();
+    public static final TraderConfig INSTANCE = new TraderConfig();
 
     private final Path configPath;
     private List<String> traderNames = new ArrayList<>();
+    private boolean disableBuiltinResources = false;
 
-    private TraderNamesConfig() {
+    private TraderConfig() {
         this.configPath = FMLPaths.CONFIGDIR.get().resolve(CONFIG_FILENAME);
         loadOrCreateConfig();
     }
@@ -35,50 +36,36 @@ public class TraderNamesConfig {
                 loadConfig();
             }
         } catch (Exception e) {
-            initializeDefaultNames();
+            initializeDefaults();
         }
     }
 
     private void createDefaultConfig() throws IOException {
-        initializeDefaultNames();
+        initializeDefaults();
 
-        StringBuilder configContent = new StringBuilder();
-        configContent.append("{\n");
-        configContent.append("  \"_comment\": [\n");
-        configContent.append("    \"This file configures the name pool for all trader entities.\",\n");
-        configContent.append("    \"All traders will randomly select names from this list.\",\n");
-        configContent.append("    \"Names are randomly assigned based on the trader's spawn position.\",\n");
-        configContent.append("    \"Each trader will keep the same name once assigned.\",\n");
-        configContent.append("    \"\",\n");
-        configContent.append("    \"You can add, remove, or modify names as you like.\",\n");
-        configContent.append("    \"This file will NOT be overwritten by mod updates.\",\n");
-        configContent.append("    \"To reset to defaults, delete this file and restart the game.\",\n");
-        configContent.append("    \"\",\n");
-        configContent.append("    \"Tips:\",\n");
-        configContent.append("    \"- Names should be simple and suitable for merchants\",\n");
-        configContent.append("    \"- Avoid special characters that might cause display issues\",\n");
-        configContent.append("    \"- The more names you add, the more variety you'll see in-game\"\n");
-        configContent.append("  ],\n");
-        configContent.append("  \"trader_names\": ");
+        JsonObject root = new JsonObject();
+
+        root.addProperty("disable_builtin_resources", disableBuiltinResources);
 
         JsonArray nameArray = new JsonArray();
         for (String name : traderNames) {
             nameArray.add(name);
         }
-
-        configContent.append(GSON.toJson(nameArray));
-        configContent.append("\n}");
+        root.add("trader_names", nameArray);
 
         Files.createDirectories(configPath.getParent());
-        Files.write(configPath, configContent.toString().getBytes(StandardCharsets.UTF_8));
+        Files.write(configPath, GSON.toJson(root).getBytes(StandardCharsets.UTF_8));
     }
 
     private void loadConfig() throws IOException {
         String content = Files.readString(configPath, StandardCharsets.UTF_8);
         JsonObject root = JsonParser.parseString(content).getAsJsonObject();
 
-        traderNames.clear();
+        disableBuiltinResources = root.has("disable_builtin_resources")
+                ? root.get("disable_builtin_resources").getAsBoolean()
+                : false;
 
+        traderNames.clear();
         if (root.has("trader_names")) {
             JsonArray nameArray = root.getAsJsonArray("trader_names");
             for (JsonElement nameElement : nameArray) {
@@ -92,6 +79,11 @@ public class TraderNamesConfig {
         if (traderNames.isEmpty()) {
             initializeDefaultNames();
         }
+    }
+
+    private void initializeDefaults() {
+        initializeDefaultNames();
+        disableBuiltinResources = false;
     }
 
     private void initializeDefaultNames() {
@@ -131,6 +123,21 @@ public class TraderNamesConfig {
 
     public boolean isEmpty() {
         return traderNames.isEmpty();
+    }
+
+    public boolean isBuiltinResourcesDisabled() {
+        return disableBuiltinResources;
+    }
+
+    public void setBuiltinResourcesDisabled(boolean disabled) {
+        this.disableBuiltinResources = disabled;
+    }
+
+    public void saveConfig() {
+        try {
+            createDefaultConfig();
+        } catch (IOException e) {
+        }
     }
 
     public void reload() {

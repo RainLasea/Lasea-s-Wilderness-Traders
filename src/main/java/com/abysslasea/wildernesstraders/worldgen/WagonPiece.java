@@ -33,31 +33,27 @@ public class WagonPiece extends TemplateStructurePiece {
 
     public WagonPiece(StructureTemplateManager templateManager, BlockPos pos) {
         super(ModStructures.WAGON_PIECE.get(), 0, templateManager, WAGON_NBT, WAGON_NBT.toString(),
-                makeSettings(), pos);
-        this.setupBoundingBox(templateManager, pos, makeSettings());
-    }
-
-    public WagonPiece(StructureTemplateManager templateManager, CompoundTag nbt) {
-        super(ModStructures.WAGON_PIECE.get(), nbt, templateManager,
-                (resourceLocation) -> makeSettings());
-        this.traderSpawned = nbt.getBoolean("TraderSpawned");
+                createSettings(), pos);
+        this.setupBoundingBox(templateManager, pos);
     }
 
     public WagonPiece(StructurePieceSerializationContext context, CompoundTag nbt) {
-        this(context.structureTemplateManager(), nbt);
+        super(ModStructures.WAGON_PIECE.get(), nbt, context.structureTemplateManager(),
+                (resourceLocation) -> createSettings());
+        this.traderSpawned = nbt.getBoolean("TraderSpawned");
     }
 
-    private static StructurePlaceSettings makeSettings() {
+    private static StructurePlaceSettings createSettings() {
         return new StructurePlaceSettings()
                 .setMirror(Mirror.NONE)
                 .setRotation(Rotation.NONE)
                 .setIgnoreEntities(true);
     }
 
-    private void setupBoundingBox(StructureTemplateManager templateManager, BlockPos pos, StructurePlaceSettings settings) {
+    private void setupBoundingBox(StructureTemplateManager templateManager, BlockPos pos) {
         StructureTemplate template = templateManager.getOrCreate(WAGON_NBT);
         if (template != null) {
-            Vec3i size = template.getSize(settings.getRotation());
+            Vec3i size = template.getSize(createSettings().getRotation());
             this.boundingBox = new BoundingBox(
                     pos.getX(), pos.getY(), pos.getZ(),
                     pos.getX() + size.getX() - 1,
@@ -79,22 +75,18 @@ public class WagonPiece extends TemplateStructurePiece {
         if ("trader_spawn".equals(name)) {
             spawnTrader(level, pos, random);
         }
-
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
     }
 
     private void spawnTrader(ServerLevelAccessor level, BlockPos pos, RandomSource random) {
-        if (this.traderSpawned) {
-            return;
-        }
+        if (this.traderSpawned) return;
 
         try {
             TraderEntity trader = new TraderEntity(ModEntities.TRADER.get(), level.getLevel());
-            trader.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ());
+            trader.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 
             String profession = getRandomTraderProfession(random);
             trader.setTraderProfession(profession);
-
             trader.forceInitialize();
 
             TraderData traderData = TraderResourceManager.INSTANCE.getTrader(profession);
@@ -104,10 +96,7 @@ public class WagonPiece extends TemplateStructurePiece {
 
             trader.setYRot(0.0F);
             trader.setYHeadRot(0.0F);
-
-            if (trader.isPersistenceRequired() == false) {
-                trader.setPersistenceRequired();
-            }
+            trader.setPersistenceRequired();
 
             level.addFreshEntity(trader);
             this.traderSpawned = true;
@@ -120,17 +109,14 @@ public class WagonPiece extends TemplateStructurePiece {
     private String getRandomTraderProfession(RandomSource random) {
         try {
             Set<String> availableProfessions = TraderResourceManager.INSTANCE.getLoadedTraderTypes();
-
             if (availableProfessions.isEmpty()) {
                 return "basic_trader";
             }
 
             String[] professionArray = availableProfessions.toArray(new String[0]);
-            int randomIndex = random.nextInt(professionArray.length);
-            return professionArray[randomIndex];
+            return professionArray[random.nextInt(professionArray.length)];
 
         } catch (Exception e) {
-            e.printStackTrace();
             return "basic_trader";
         }
     }
@@ -143,8 +129,8 @@ public class WagonPiece extends TemplateStructurePiece {
 
         registerProtectedArea(level);
 
-        if (!this.traderSpawned && !hasDataMarkers()) {
-            BlockPos traderPos = findStructureCenter(level);
+        if (!this.traderSpawned) {
+            BlockPos traderPos = findDefaultTraderPosition();
             if (traderPos != null) {
                 spawnTrader(level, traderPos, random);
             }
@@ -158,31 +144,17 @@ public class WagonPiece extends TemplateStructurePiece {
                     this.boundingBox.maxX() + 1, this.boundingBox.maxY() + 1, this.boundingBox.maxZ() + 1
             );
 
-            WagonProtectionManager.addProtectedArea(level.getLevel().dimension(), protectionArea);
+            WagonProtection.addProtectedArea(level.getLevel().dimension(), protectionArea);
         }
     }
 
-    private BlockPos findStructureCenter(WorldGenLevel level) {
+    private BlockPos findDefaultTraderPosition() {
         if (this.boundingBox == null) return null;
 
-        int traderX = this.boundingBox.minX() + 3;
-        int traderY = this.boundingBox.minY() + 2;
-        int traderZ = this.boundingBox.minZ() + 6;
-
-        return new BlockPos(traderX, traderY, traderZ);
-    }
-
-    private boolean hasDataMarkers() {
-        StructureTemplate template = this.template();
-        if (template == null) {
-            return false;
-        }
-
-        for (StructureTemplate.StructureBlockInfo blockInfo : template.filterBlocks(this.templatePosition(), this.placeSettings(), Blocks.STRUCTURE_VOID)) {
-            if (blockInfo != null) {
-                return true;
-            }
-        }
-        return false;
+        return new BlockPos(
+                this.boundingBox.minX() + 3,
+                this.boundingBox.minY() + 2,
+                this.boundingBox.minZ() + 6
+        );
     }
 }

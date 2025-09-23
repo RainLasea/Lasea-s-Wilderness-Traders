@@ -1,0 +1,34 @@
+{
+  "nodes": {
+    "0": {
+      "textKey": "trader.basic.greeting",
+      "options": {
+        "0": {
+          "textKey": "trader.basic.option.trade",
+          "next": "shop"
+        },
+        "1": {
+          "textKey": "trader.basic.option.about",
+          "next": 1
+        },
+        "2": {
+          "textKey": "trader.basic.option.goodbye",
+          "next": -1
+        }
+      }
+    },
+    "1": {
+      "textKey": "trader.basic.about",
+      "options": {
+        "0": {
+          "textKey": "trader.basic.option.trade_now",
+          "next": "shop"
+        },
+        "1": {
+          "textKey": "trader.basic.option.back",
+          "next": 0
+        }
+      }
+    }
+  }
+}

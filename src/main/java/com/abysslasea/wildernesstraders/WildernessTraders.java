@@ -115,7 +115,7 @@ public class WildernessTraders {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            TraderNamesConfig config = TraderNamesConfig.INSTANCE;
+            TraderConfig config = TraderConfig.INSTANCE;
         });
     }
 

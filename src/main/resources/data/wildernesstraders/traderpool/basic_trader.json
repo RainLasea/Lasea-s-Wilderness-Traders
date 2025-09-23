@@ -1,0 +1,82 @@
+{
+  "currency": {
+    "item": "minecraft:emerald"
+  },
+  "restock_days": 3,
+  "trades": [
+    {
+      "type": "SELL",
+      "item": {
+        "id": "minecraft:iron_sword",
+        "count": 1
+      },
+      "price": 12,
+      "weight": 70,
+      "max_uses": 5,
+      "stock": 3
+    },
+    {
+      "type": "SELL",
+      "item": {
+        "id": "minecraft:bread",
+        "count": 4
+      },
+      "price": 2,
+      "weight": 80,
+      "max_uses": 10,
+      "stock": 20
+    },
+    {
+      "type": "SELL",
+      "item": {
+        "id": "minecraft:leather_boots",
+        "count": 1
+      },
+      "price": 8,
+      "weight": 60,
+      "max_uses": 3,
+      "stock": 2
+    },
+    {
+      "type": "SELL",
+      "item": {
+        "id": "minecraft:arrow",
+        "count": 16
+      },
+      "price": 3,
+      "weight": 90,
+      "max_uses": 8,
+      "stock": 64
+    },
+    {
+      "type": "BUY",
+      "item": {
+        "id": "minecraft:diamond",
+        "count": 1
+      },
+      "price": 45,
+      "weight": 30,
+      "max_uses": 3
+    },
+    {
+      "type": "BUY",
+      "item": {
+        "id": "minecraft:gold_ingot",
+        "count": 1
+      },
+      "price": 15,
+      "weight": 50,
+      "max_uses": 5
+    },
+    {
+      "type": "BUY",
+      "item": {
+        "id": "minecraft:wheat",
+        "count": 16
+      },
+      "price": 2,
+      "weight": 85,
+      "max_uses": 10
+    }
+  ]
+}

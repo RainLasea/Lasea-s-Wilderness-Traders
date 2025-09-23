@@ -28,7 +28,7 @@ public class WagonStructure extends Structure {
 
     @Override
     public Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
-        if (!checkLocation(context)) {
+        if (context.random().nextFloat() > 0.8f) {
             return Optional.empty();
         }
 
@@ -43,12 +43,8 @@ public class WagonStructure extends Structure {
         }
 
         return Optional.of(new GenerationStub(blockpos, (structurePiecesBuilder) -> {
-            generatePieces(structurePiecesBuilder, context, blockpos);
+            structurePiecesBuilder.addPiece(new WagonPiece(context.structureTemplateManager(), blockpos));
         }));
-    }
-
-    private boolean checkLocation(GenerationContext context) {
-        return context.random().nextFloat() < 0.8f;
     }
 
     private boolean isValidGround(GenerationContext context, BlockPos pos) {
@@ -66,10 +62,6 @@ public class WagonStructure extends Structure {
             }
         }
         return true;
-    }
-
-    private void generatePieces(StructurePiecesBuilder builder, GenerationContext context, BlockPos pos) {
-        builder.addPiece(new WagonPiece(context.structureTemplateManager(), pos));
     }
 
     @Override

@@ -45,8 +45,8 @@ public class ModStructureData {
         context.register(WAGON_STRUCTURE_SET, new StructureSet(
                 structures.getOrThrow(WAGON_STRUCTURE),
                 new RandomSpreadStructurePlacement(
-                        4,
-                        8,
+                        6,
+                        12,
                         RandomSpreadType.LINEAR,
                         12345
                 )
